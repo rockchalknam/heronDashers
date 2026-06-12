@@ -1,0 +1,224 @@
+<!-- Heron Dash - VRMS classroom edition of Dashmetry (1games.io), build v26051602.
+     Self-contained loader: no external scripts, analytics stubbed, navigation locked. -->
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Heron Dash</title>
+    <meta name="description" content="Heron Dash - the official VRMS dash game. Fly Herons, Fly." />
+
+    <style>
+        :root {
+            --navy: #0B1B36;
+            --navy-mid: #16294F;
+            --orange: #F76B1C;
+            --orange-hi: #FFA040;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--navy);
+            overflow: hidden;
+            font-family: "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+        }
+
+        #unity-container {
+            position: fixed;
+            inset: 0;
+            display: none;
+        }
+
+        #unity-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: var(--navy);
+        }
+
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+            background: linear-gradient(var(--navy-mid), var(--navy));
+        }
+
+        #loading-screen .logo {
+            width: 110px;
+            height: 110px;
+            border-radius: 22px;
+        }
+
+        #loading-screen .splash {
+            width: min(432px, 84vw);
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        #loading-screen .game-name {
+            color: #fff;
+            font-size: 30px;
+            letter-spacing: 1px;
+        }
+
+        .progress-track {
+            width: min(360px, 76vw);
+            height: 14px;
+            border-radius: 7px;
+            background: rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 7px;
+            background: var(--orange);
+            transition: width 0.2s ease-out;
+            animation: heronFill 2.4s infinite;
+        }
+
+        @keyframes heronFill {
+            0%   { background-color: var(--orange); }
+            50%  { background-color: var(--orange-hi); }
+            100% { background-color: var(--orange); }
+        }
+
+        #progress-info {
+            color: var(--orange-hi);
+            font-size: 15px;
+        }
+
+        #version-tag {
+            position: fixed;
+            bottom: 10px;
+            right: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+        }
+    </style>
+
+    <!-- Classroom lock: blocks all navigation away from the game -->
+    <script src="classroom-lock.js"></script>
+</head>
+
+<body>
+    <div id="unity-container">
+        <canvas id="unity-canvas" tabindex="-1"></canvas>
+    </div>
+
+    <div id="loading-screen">
+        <img class="logo" src="logo.png" alt="Heron Dash logo" />
+        <div class="game-name">Heron Dash</div>
+        <img class="splash" src="loading.png" alt="" />
+        <div class="progress-track"><div id="progress-fill"></div></div>
+        <div id="progress-info">Loading Game...</div>
+    </div>
+
+    <div id="version-tag">v26051602 &middot; Fly Herons, Fly</div>
+
+    <!-- Analytics + backend stubs. The game calls these by name; they must
+         exist, but they send nothing anywhere. Online features (login,
+         community level browser) are intentionally disabled for class.
+         Level sharing happens through the editor's export/import codes. -->
+    <script>
+        /* Domain unlock. The engine checks a remote allowlist by fetching a
+           "signed" URL and looking for a specific token in the reply. We point
+           that check at a local file that returns the expected token, so the
+           game unlocks on our own GitHub Pages domain. No backend, no wasm edit. */
+        window.GMSOFT_OPTIONS = window.GMSOFT_OPTIONS || {};
+        window.GMSOFT_OPTIONS.signedurl = "keysigned.txt";
+
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () {};
+
+        const firebaseConfig = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "games-dashmetry",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: "",
+            measurementId: ""
+        };
+
+        /* Minimal firebase shape so direct property access never
+           ReferenceErrors. The game wraps online calls in try/catch,
+           so failures here degrade gracefully. */
+        window.firebase = {
+            initializeApp: function () {},
+            analytics: function () {
+                return { setUserProperties: function () {}, logEvent: function () {} };
+            },
+            auth: function () {
+                return { signInAnonymously: function () { return Promise.reject("offline"); } };
+            },
+            firestore: function () { throw new Error("offline classroom build"); }
+        };
+        window.firestorelisteners = {};
+
+        function isFirebaseReady() { return false; }
+        function firebaseSetUserProperties(props) {}
+        function firebaseLogEvent(eventName) {}
+        function firebaseLogEventParameter(eventName, params) {}
+
+        const eventLog = false;
+        const gameId = "dashmetry";
+    </script>
+
+    <!-- Unity loader -->
+    <script>
+        const buildUrl = "Build";
+        const loaderUrl = buildUrl + "/dashmetry-v26051602.loader.js";
+
+        const config = {
+            dataUrl: buildUrl + "/dashmetry-v26051602.data.unityweb",
+            frameworkUrl: buildUrl + "/dashmetry-v26051602.framework.js.unityweb",
+            codeUrl: buildUrl + "/dashmetry-v26051602.wasm.unityweb",
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "1games.io",
+            productName: "Dashmetry",
+            productVersion: "26051602"
+        };
+
+        const canvas = document.getElementById("unity-canvas");
+        const container = document.getElementById("unity-container");
+        const loadingScreen = document.getElementById("loading-screen");
+        const progressFill = document.getElementById("progress-fill");
+        const progressInfo = document.getElementById("progress-info");
+
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+                const percent = Math.round(progress * 100);
+                progressFill.style.width = percent + "%";
+                progressInfo.innerText = percent >= 99 ? "Starting up..." : "Loading: " + percent + "%";
+            }).then((unityInstance) => {
+                window.unityInstance = unityInstance;
+                setTimeout(() => {
+                    loadingScreen.style.display = "none";
+                    container.style.display = "block";
+                    window.focus();
+                }, 1200);
+            }).catch((message) => {
+                progressInfo.innerText = "Load error: " + message;
+                console.error(message);
+            });
+        };
+        script.onerror = () => {
+            progressInfo.innerText = "Could not load game files. Check that the Build folder is at the repo root.";
+        };
+        document.body.appendChild(script);
+    </script>
+</body>
+
+</html>

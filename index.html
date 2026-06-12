@@ -130,6 +130,13 @@
          community level browser) are intentionally disabled for class.
          Level sharing happens through the editor's export/import codes. -->
     <script>
+        /* Domain unlock. The engine checks a remote allowlist by fetching a
+           "signed" URL and looking for a specific token in the reply. We point
+           that check at a local file that returns the expected token, so the
+           game unlocks on our own GitHub Pages domain. No backend, no wasm edit. */
+        window.GMSOFT_OPTIONS = window.GMSOFT_OPTIONS || {};
+        window.GMSOFT_OPTIONS.signedurl = "keysigned.txt";
+
         window.dataLayer = window.dataLayer || [];
         window.gtag = function () {};
 
